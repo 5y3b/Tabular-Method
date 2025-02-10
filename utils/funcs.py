@@ -1,4 +1,3 @@
-from ordered_set import OrderedSet
 from itertools import product
 
 zf = None
@@ -38,6 +37,11 @@ def parse_minterms() -> list[int]:
     """
     minterms = input("Minterms (leave a space between each integar value, value>=0):\n").split()
     return validate(minterms)
+
+def parse_dont_cares() -> list[int]:
+    """asks the user for input of the dont_cares to be calculated later"""
+    dont_cares = input("Dont cares (leave a space between each integar value, value>=0) PRESS ENTER TO SKIP:\n").split()
+    return validate(dont_cares)
 
 def first_grouping(minterms: list[int]) -> dict[int, list[str]]:
     """Groups minterms by the number of 1s in their binary representation.
@@ -117,7 +121,7 @@ def find_prime_implicants(minterms: list[int]) -> set[str]:
     
     num_vars = zf
     groups = first_grouping(minterms)
-    prime_implicants = OrderedSet()
+    prime_implicants = set()
     
     while groups:
         new_groups = second_grouping(groups)
@@ -127,7 +131,7 @@ def find_prime_implicants(minterms: list[int]) -> set[str]:
         groups = new_groups
     return prime_implicants
     
-def find_essential_prime_implicants(minterms: list[int], prime_implicants: set[str]) -> set[str]:
+def find_essential_prime_implicants(minterms: list[int], prime_implicants: set[str], dont_care: list[int]=[]) -> set[str]:
     """Finds Essential Prime Implicants from the Prime Implicant Chart.
     
     Args:
@@ -154,7 +158,7 @@ def find_essential_prime_implicants(minterms: list[int], prime_implicants: set[s
     
     essential_prime_implicants = set()
     for key, value in table.items():
-        if len(value) == 1:
+        if len(value) == 1 and (not key in dont_care):
             essential_prime_implicants.add(value[0])
     
     return essential_prime_implicants
@@ -198,7 +202,7 @@ def get_in_alphabet(essential_prime_implicants: list[str]) -> str:
                 current += chr(ord('A') + i) + '`'
         final.append(current)
         
-    return '+'.join(final)
+    return ' + '.join(final)
                 
     
                 
@@ -207,10 +211,20 @@ def get_in_alphabet(essential_prime_implicants: list[str]) -> str:
 def tabular_method() -> str:
     """The Tabular Method for finding the Minimal Sum of Products (MSOP) of a Boolean
         function. This method is used to find the Prime Implicants and Essential Prime
-        Implicants of a Boolean function."""
+        Implicants of a Boolean function.
+
+    Returns:
+        str: function
+    """
     minterms = parse_minterms()
+    dont_cares = parse_dont_cares()
     pi = find_prime_implicants(minterms)
-    epi = find_essential_prime_implicants(minterms, pi)
+    epi = find_essential_prime_implicants(minterms, pi, dont_cares)
     alpha = get_in_alphabet(epi)
     return alpha
-    
+
+
+
+if __name__ == '__main__':
+    print(tabular_method())
+    input()
